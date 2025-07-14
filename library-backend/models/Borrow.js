@@ -1,27 +1,25 @@
+// models/borrow.js
 import mongoose from "mongoose";
 
-const borrowSchema = mongoose.Schema({
-    userId: {
+const borrowSchema = new mongoose.Schema({
+    user: {
         type: mongoose.Schema.Types.ObjectId,
         ref: "User",
-        required: true,
+        required: true
     },
-    bookId: {
+    book: {
         type: mongoose.Schema.Types.ObjectId,
         ref: "Book",
-        required: true,
+        required: true
     },
     borrowDate: {
         type: Date,
-        default: Date.now,
+        default: Date.now
     },
     returnDate: {
-        type: Date,
-        default: null,
-    },
-},
-    { timestamps: true }
-)
+        type: Date
+    }
+});
 
 const Borrow = mongoose.model("Borrow", borrowSchema);
 

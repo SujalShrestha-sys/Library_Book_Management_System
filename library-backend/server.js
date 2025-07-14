@@ -5,6 +5,7 @@ import authRoutes from "../library-backend/routes/authRoutes.js"
 import cors from "cors"
 import bookRoutes from "../library-backend/routes/bookRoutes.js"
 import cookieParser from "cookie-parser";
+import borrowRoutes from "./routes/borrowRoutes.js"
 
 dotenv.config();
 connectDatabase();
@@ -19,6 +20,7 @@ app.use(cookieParser());
 //Routes
 app.use("/api/auth", authRoutes)
 app.use("/api/books",bookRoutes)
+app.use("/api", borrowRoutes)
 
 app.use((req, res) => {
   res.status(404).json({ message: "Route not found" });
