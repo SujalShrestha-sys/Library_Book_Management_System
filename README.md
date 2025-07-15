@@ -40,7 +40,7 @@ This is the **backend API** for a Library Book Management System built using **N
 
 ---
 
-## 📁 Project Structure
+## 📁 Project Structures
 
 ```
 📦 library-backend
