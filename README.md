@@ -1,6 +1,6 @@
 # 📚 Library Book Management System – Backend (MERN)
 
-This is the backend API for a Library Book Management System built using **Node.js**, **Express**, and **MongoDB**. It supports role-based user access (Librarian and Borrower), full CRUD operations for books, borrowing/returning functionality, and admin dashboard stats.
+This is the **backend API** for a Library Book Management System built using **Node.js**, **Express**, and **MongoDB**. It supports **role-based access control** for `Librarian` and `Borrower`, full CRUD for books, borrow/return logic, and dashboard statistics for admin users.
 
 ---
 
@@ -8,22 +8,22 @@ This is the backend API for a Library Book Management System built using **Node.
 
 ### 🔐 Authentication
 - User Registration & Login (JWT-based)
-- Role-based Access (`librarian`, `borrower`)
+- Role-based access (`librarian`, `borrower`)
 
 ### 📚 Book Management (Librarian Only)
-- Create new books
-- Update book info
-- Delete books
-- View all books (borrowers can also view)
+- Add, update, delete books
+- View all books (Borrowers can also view)
 
-### 🔁 Borrow & Return (Borrower Only)
-- Borrow books (decreases available stock)
-- Return books (updates return date, restores stock)
-- View own borrow history
-- Librarian can view all borrow logs
+### 🔁 Borrow & Return
+- **Borrowers** can:
+  - Borrow books (stock decreases)
+  - Return books (return date recorded, stock restored)
+  - View personal borrow history
+- **Librarians** can:
+  - View all borrow logs
 
-### 📊 Dashboard (Librarian Only)
-- Get total users, total books, total borrowed books, available stock, etc.
+### 📊 Admin Dashboard (Librarian Only)
+- View total books, users, borrowed books, available stock, etc.
 
 ---
 
@@ -32,79 +32,116 @@ This is the backend API for a Library Book Management System built using **Node.
 - Node.js
 - Express.js
 - MongoDB + Mongoose
-- JWT Authentication
+- JWT (jsonwebtoken)
 - bcrypt.js
-- dotenv
 - cookie-parser
+- dotenv
 - CORS
 
 ---
 
-## 📁 Folder Structure
+## 📁 Project Structure
 
+```
 📦 library-backend
-├── config/ # MongoDB connection
-├── controllers/ # Route logic
-├── middleware/ # Auth & Role protection
-├── models/ # Mongoose schemas
-├── routes/ # API routes
-├── .env # Environment config
+├── config/           # MongoDB connection
+├── controllers/      # Route logic
+├── middleware/       # Auth & Role checks
+├── models/           # Mongoose schemas
+├── routes/           # API endpoints
+├── utils/            # Reusable utility functions
+├── .env              # Environment variables
 ├── .gitignore
-├── server.js # Entry point
+├── server.js         # App entry point
 └── README.md
+```
 
-### 1. Clone the repo
+---
+
+## 🔧 Getting Started
+
+### 1. Clone the Repository
+
 ```bash
 git clone https://github.com/your-username/library-book-management-backend.git
 cd library-book-management-backend
+```
 
- API Endpoints
-🔐 Auth Routes
+### 2. Install Dependencies
+
+```bash
+npm install
+```
+
+### 3. Set Up Environment Variables
+
+Create a `.env` file in the root directory and add:
+
+```env
+PORT=5000
+MONGO_URI=your_mongodb_connection_string
+JWT_SECRET=your_jwt_secret
+```
+
+### 4. Start the Server
+
+```bash
+npm run dev
+```
+
+---
+
+## 📡 API Endpoints
+
+### 🔐 Auth Routes
 
 | Method | Endpoint             | Access | Description         |
-| ------ | -------------------- | ------ | ------------------- |
+|--------|----------------------|--------|---------------------|
 | POST   | `/api/auth/register` | Public | Register new user   |
-| POST   | `/api/auth/login`    | Public | Login and get token |
+| POST   | `/api/auth/login`    | Public | Login & get token   |
 
+---
 
+### 📚 Book Routes
 
-📚 Book Routes
-| Method | Endpoint         | Access    | Description    |
-| ------ | ---------------- | --------- | -------------- |
-| GET    | `/api/books`     | All users | View all books |
-| POST   | `/api/books`     | Librarian | Add new book   |
-| PUT    | `/api/books/:id` | Librarian | Update book    |
-| DELETE | `/api/books/:id` | Librarian | Delete book    |
+| Method | Endpoint         | Access    | Description      |
+|--------|------------------|-----------|------------------|
+| GET    | `/api/books`     | All users | View all books   |
+| POST   | `/api/books`     | Librarian | Add a new book   |
+| PUT    | `/api/books/:id` | Librarian | Update book info |
+| DELETE | `/api/books/:id` | Librarian | Delete a book    |
 
+---
 
-🔁 Borrow Routes
+### 🔁 Borrow Routes
+
 | Method | Endpoint                | Access    | Description             |
-| ------ | ----------------------- | --------- | ----------------------- |
+|--------|-------------------------|-----------|-------------------------|
 | POST   | `/api/borrow/:bookId`   | Borrower  | Borrow a book           |
 | POST   | `/api/return/:borrowId` | Borrower  | Return a borrowed book  |
 | GET    | `/api/borrowed/me`      | Borrower  | View own borrow history |
 | GET    | `/api/borrowed`         | Librarian | View all borrow logs    |
 
+---
 
-📊 Admin Stats Route
+### 📊 Admin Dashboard
+
 | Method | Endpoint           | Access    | Description             |
-| ------ | ------------------ | --------- | ----------------------- |
-| GET    | `/api/admin/stats` | Librarian | Dashboard stats summary |
+|--------|--------------------|-----------|-------------------------|
+| GET    | `/api/admin/stats` | Librarian | Summary dashboard stats |
 
+---
 
-📌 Future Improvements
-Email verification / password reset
-Pagination & search for books
-File uploads (e.g., book covers)
-React Frontend integration
-Mobile app (React Native)
+## 🧠 Future Improvements
 
-📄 License
-This project is licensed under the MIT License.
+- [ ] Email verification & password reset
+- [ ] Pagination & search for books
+- [ ] Upload book cover images
+- [ ] Frontend Integration (React)
+- [ ] Mobile App (React Native)
 
+---
 
+## 📄 License
 
-
-
-
-
+This project is licensed under the **MIT License**.
