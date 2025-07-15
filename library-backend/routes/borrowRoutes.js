@@ -6,8 +6,8 @@ const router = express.Router();
 
 router.post("/borrow/:bookId", authenticateToken, authorizedRole("borrower"), borrowBook)
 router.post("/return/:borrowId", authenticateToken, authorizedRole("borrower"), returnBook)
-router.get("/borrow/me", authenticateToken, authorizedRole("borrower"),getMyBorrowHistory)
-router.get("/borrowed", authenticateToken, authorizedRole("librarian"),getAllBorrowRecords)
+router.get("/borrow/me", authenticateToken, authorizedRole("borrower"), getMyBorrowHistory)
+router.get("/borrowed", authenticateToken, authorizedRole("librarian"), getAllBorrowRecords)
 
 export default router
 

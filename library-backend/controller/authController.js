@@ -31,7 +31,7 @@ export const userLogin = async (req, res) => {
                 message: "Invalid email or password",
             });
         }
-
+ 
         //jwt part
         const token = jwt.sign({ id: user._id, role: user.role }, process.env.JWT_KEY, { expiresIn: "1h" });
 
@@ -65,7 +65,7 @@ export const userLogin = async (req, res) => {
 
 export const registerUser = async (req, res) => {
     try {
-         console.log("Register Request Body:", req.body);
+        console.log("Register Request Body:", req.body);
         const { name, email, password, role } = req.body;
 
         if (!name || !email || !password || !role) {
@@ -76,7 +76,10 @@ export const registerUser = async (req, res) => {
         console.log(existingUser);
 
         if (existingUser) {
-            return res.status(409).json({ success: false, message: "Email already exists." });
+            return res.status(409).json({
+                success: false,
+                message: "Email already exists."
+            });
         }
 
         const hashedPassword = await bcrypt.hash(password, 10);

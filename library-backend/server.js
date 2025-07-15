@@ -6,6 +6,7 @@ import cors from "cors"
 import bookRoutes from "../library-backend/routes/bookRoutes.js"
 import cookieParser from "cookie-parser";
 import borrowRoutes from "./routes/borrowRoutes.js"
+import adminRoutes from "../library-backend/routes/adminRoutes.js"
 
 dotenv.config();
 connectDatabase();
@@ -19,8 +20,9 @@ app.use(cookieParser());
 
 //Routes
 app.use("/api/auth", authRoutes)
-app.use("/api/books",bookRoutes)
+app.use("/api/books", bookRoutes)
 app.use("/api", borrowRoutes)
+app.use("/api/admin", adminRoutes)
 
 app.use((req, res) => {
   res.status(404).json({ message: "Route not found" });
@@ -30,5 +32,5 @@ app.use((req, res) => {
 const PORT = process.env.PORT
 
 app.listen(PORT, () => {
-    console.log(`Server started at: http://localhost:${PORT}`)
+  console.log(`Server started at: http://localhost:${PORT}`)
 })

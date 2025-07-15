@@ -1,19 +1,29 @@
 import Borrow from "../models/Borrow.js";
 import Book from "../models/Book.js";
+import { sendEmail } from "../utils/sendEmail.js";
+import User from "../models/User.js";
 
 //Borrow a book
-
 export const borrowBook = async (req, res) => {
-    const { bookId } = req.params;
-    const userId = req.user?.id;
-    console.log("🚀 Book ID from params:", bookId);
-    console.log("👤 User ID from token:", userId);
-
     try {
+        const { bookId } = req.params;
+        const userId = req.user?.id;
+        console.log("Book ID from params:", bookId);
+        console.log("User ID from token:", userId);
+
         const book = await Book.findById(bookId);
         console.log(book);
+        const user = await User.findById(userId);
 
-        if (!book || book.quantity < 0) {
+        if (!user || !user.email) {
+            console.log(" User not found or email missing:", user);
+            return res.status(400).json({
+                success: false,
+                message: "User email not available for sending confirmation."
+            });
+        }
+
+        if (!book || book.quantity <= 0) {
             return res.status(404).json({
                 success: false,
                 message: "Book not available"
@@ -31,10 +41,22 @@ export const borrowBook = async (req, res) => {
         book.quantity -= 1;
         await book.save();
 
+        await sendEmail({
+            to: user.email,
+            subject: "📚 Book Borrowed Successfully",
+            html: `
+            <h2>Hi ${user.name},</h2>
+            <p>You have successfully borrowed <strong>${book.title}</strong> by ${book.author}.</p>
+            <p>Please return it on time to avoid penalties.</p>
+            <br/>
+            <small>-- This is an automated message from LBMS.</small>`,
+        })
+
+
 
         res.status(201).json({
             message: "Book borrowed successfully",
-            savedBorrowBook
+            savedBorrowBook,
         });
 
     } catch (error) {
@@ -44,7 +66,6 @@ export const borrowBook = async (req, res) => {
             message: "Error borrowing book",
             error: error.message
         });
-
     }
 }
 
@@ -54,12 +75,20 @@ export const returnBook = async (req, res) => {
 
     try {
         //The populate() method replaces the referenced ObjectId in a document with the actual document from the referenced collection.
-        const borrow = await Borrow.findById(borrowId).populate("book");
+        const borrow = await Borrow.findById(borrowId).populate("book").populate("user"); //Populate user to get name + email
 
         if (!borrow || borrow.returnDate) {
             return res.status(404).json({
                 success: false,
                 message: "Invalid borrow record or already returned"
+            });
+        }
+
+        if (!borrow.user?.email) {
+            console.log(" Email missing on borrow.user:", borrow.user);
+            return res.status(400).json({
+                success: false,
+                message: "Cannot send return email — user email not found."
             });
         }
 
@@ -69,6 +98,18 @@ export const returnBook = async (req, res) => {
         // Increase book quantity back
         borrow.book.quantity += 1;
         const updatedBook = await borrow.book.save();
+
+        await sendEmail({
+            to: borrow.user.email,
+            subject: "✅ Book Returned Successfully",
+            html: `
+            <h2>Hi ${borrow.user.name},</h2>
+            <p>You have successfully returned <strong>${borrow.book.title}</strong> by ${borrow.book.author}.</p>
+            <p>Thank you for using the Library Book Management System!</p>
+            <br/>
+            <small>-- This is an automated message from LBMS.</small>
+      `
+        });
 
         return res.status(200).json({
             message: "Book returned successfully",
@@ -91,10 +132,10 @@ export const getMyBorrowHistory = async (req, res) => {
             success: true,
             records
         });
-    } catch (err) {
+    } catch (error) {
         res.status(500).json({
             message: "Error fetching history",
-            error: err.message
+            error: error.message,
         });
     }
 };
@@ -108,7 +149,7 @@ export const getAllBorrowRecords = async (req, res) => {
             records
         });
     } catch (error) {
-        console.log(err)
+        console.log(error)
         res.status(500).json({
             message: "Error fetching records",
             error: error.message
