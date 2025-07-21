@@ -43,7 +43,6 @@ export const createBook = async (req, res) => {
 
 }
 
-
 export const getAllBooks = async (req, res) => {
     try {
         const allBooks = await Book.find();

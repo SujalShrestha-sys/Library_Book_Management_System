@@ -31,7 +31,7 @@ export const userLogin = async (req, res) => {
                 message: "Invalid email or password",
             });
         }
- 
+
         //jwt part
         const token = jwt.sign({ id: user._id, role: user.role }, process.env.JWT_KEY, { expiresIn: "1h" });
 
@@ -50,7 +50,6 @@ export const userLogin = async (req, res) => {
                 name: user.name,
                 email: user.email,
                 role: user.role
-
             }
         });
 
@@ -88,7 +87,7 @@ export const registerUser = async (req, res) => {
             name,
             email,
             password: hashedPassword,
-            role: role === "Librarian" ? "librarian" : "borrower",
+            role: role === "librarian" ? "librarian" : "borrower",
         });
 
         const savedNewUser = await newUser.save();

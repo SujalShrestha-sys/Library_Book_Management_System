@@ -13,8 +13,11 @@ connectDatabase();
 
 const app = express();
 
-//middlewares
-app.use(cors());
+//middlewares 
+app.use(cors({
+  origin : "*",
+  credentials : true
+}));
 app.use(express.json());
 app.use(cookieParser());
 
