@@ -1,5 +1,6 @@
 .main-frame {
   display: flex;
+  background-color: #f7f9e4;
 }
 
 .login_img img {
@@ -42,6 +43,7 @@
 }
 .title_container h2 {
   font-size: 32px;
+    color: #0a400c;
 }
 .title_container h3 {
   font-size: 24px;
