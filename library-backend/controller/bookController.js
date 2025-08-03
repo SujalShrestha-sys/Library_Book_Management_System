@@ -2,7 +2,7 @@ import Book from "../models/Book.js";
 
 export const createBook = async (req, res) => {
     try {
-        const { title, author, isbn, quantity } = req.body;
+        const { title, author, isbn, quantity, available, genre, publisher, publishedYear, description, coverImage } = req.body;
 
         if (!title || !author || !isbn || !quantity) {
             return res.status(400).json({ success: false, message: "All fields are required" });
@@ -22,7 +22,12 @@ export const createBook = async (req, res) => {
             author,
             isbn,
             quantity,
-            available: quantity,
+            available,
+            publishedYear,
+            genre,
+            publisher,
+            coverImage,
+            description
         });
 
         const savedBook = await newBookCreation.save();
@@ -67,11 +72,11 @@ export const getAllBooks = async (req, res) => {
 export const updateBooks = async (req, res) => {
     try {
         const { id } = req.params;
-        const { title, author, isbn, quantity, available } = req.body;
+        const { title, author, isbn, quantity, available, genre, publisher, publishedYear, description, coverImage } = req.body;
 
         const updatedBooks = await Book.findByIdAndUpdate(
             id,
-            { title, author, isbn, quantity, available },
+            { title, author, isbn, quantity, available, genre, publishedYear, publisher, description, coverImage },
             {
                 new: true
             }

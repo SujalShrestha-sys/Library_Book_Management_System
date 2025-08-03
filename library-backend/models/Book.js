@@ -28,6 +28,31 @@ const bookSchema = new mongoose.Schema({
         required: true,
         min: 0,
     },
+    genre: {
+        type: String,
+        required: true,
+        trim: true,
+    },
+    publisher: {
+        type: String,
+        required: true,
+        trim: true,
+    },
+    publishedYear: {
+        type: Number,
+        required: true,
+        min: 0,
+    },
+    description: {
+        type: String,
+        required: false,
+        trim: true,
+    },
+    coverImage: {
+        type: String,
+        trim: true,
+        default: "", //optional: blank if no image is uploaded
+    }
 },
     { timestamps: true }
 )

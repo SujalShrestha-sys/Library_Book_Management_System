@@ -18,8 +18,18 @@ const borrowSchema = new mongoose.Schema({
     },
     returnDate: {
         type: Date
+    },
+    status: {
+        type: String,
+        enum: ["Borrowed", "Returned", "Overdue"],
+        default: "borrowed"
+    },
+    isReturned: {
+        type: Boolean,
+        default: false,
     }
-});
+},
+    { timestamps: true });
 
 const Borrow = mongoose.model("Borrow", borrowSchema);
 
