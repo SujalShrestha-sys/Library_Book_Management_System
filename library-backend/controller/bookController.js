@@ -131,3 +131,34 @@ export const deleteBook = async (req, res) => {
     }
 }
 
+export const getNewRelease = async (req, res) => {
+    try {
+        const books = await Book.find().sort({ createdAt: -1 }).limit(5);
+        res.status(200).json({
+            success: true,
+            data: books
+        })
+    } catch (error) {
+        res.status(500).json({
+            success: false,
+            message: "Error fetching new releases"
+        })
+    }
+
+}
+
+export const getRecommendedBooks = async (req, res) => {
+    try {
+        const books = await Book.aggregate([{ $sample: { size: 5 } }]);
+
+        res.status(200).json({
+            success: true,
+            data: books
+        })
+    } catch (error) {
+        res.status(500).json({
+            success: false,
+            message: "Error fetching recommended books"
+        })
+    }
+}
