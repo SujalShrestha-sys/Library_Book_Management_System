@@ -38,7 +38,7 @@ export const borrowBook = async (req, res) => {
         const savedBorrowBook = await borrowBook.save();
 
         //decrease availabe quantity 
-        book.quantity -= 1;
+        book.available -= 1;
         await book.save();
 
         await sendEmail({
@@ -77,11 +77,15 @@ export const returnBook = async (req, res) => {
         //The populate() method replaces the referenced ObjectId in a document with the actual document from the referenced collection.
         const borrow = await Borrow.findById(borrowId).populate("book").populate("user"); //Populate user to get name + email
 
-        if (!borrow || borrow.returnDate) {
+        if (!borrow) {
             return res.status(404).json({
                 success: false,
-                message: "Invalid borrow record or already returned"
+                message: "Borrow record not found"
             });
+        }
+
+        if (borrow.isReturned) {
+            return res.status(400).json({ message: "Book already returned" });
         }
 
         if (!borrow.user?.email) {
@@ -93,11 +97,16 @@ export const returnBook = async (req, res) => {
         }
 
         borrow.returnDate = new Date();
+        borrow.isReturned = true;
+        borrow.status = "Returned";
         await borrow.save();
 
         // Increase book quantity back
-        borrow.book.quantity += 1;
-        const updatedBook = await borrow.book.save();
+        const updatedBook = await Book.findByIdAndUpdate(borrow.book._id, {
+            $inc: { available: 1 }
+        },
+            { new: true }
+        );
 
         await sendEmail({
             to: borrow.user.email,
@@ -113,6 +122,7 @@ export const returnBook = async (req, res) => {
 
         return res.status(200).json({
             message: "Book returned successfully",
+            borrow,
             updatedBook
         });
     } catch (error) {
@@ -156,3 +166,160 @@ export const getAllBorrowRecords = async (req, res) => {
         });
     }
 };
+
+
+export const getBorrowerDetails = async (req, res) => {
+    try {
+        const history = await Borrow.find({ user: req.params.userId }).populate("book", "title author").populate("user", "name email").sort({ borrowDate: -1 });
+        console.log(history)
+
+        const pending = history.filter((book) => book.status === "Pending")
+        console.log(pending)
+
+        res.status(200).json({
+            success: true,
+            history,
+            pending,
+        })
+
+    } catch (error) {
+        res.status(500).json({
+            success: false,
+            message: error.message
+        })
+    }
+
+}
+
+export const approveBorrowerRequest = async (req, res) => {
+    try {
+        const { borrowId } = req.params;
+        const borrow = await Borrow.findById(borrowId).populate("book");
+
+        if (!borrow) {
+            return res.status(404).json({
+                success: false,
+                message: "Borrow record not found"
+            })
+        }
+
+        if (borrow.status !== "Pending") {
+            return res.status(400).json({
+                success: "false",
+                message: "only pending request can be approved"
+            })
+        }
+
+        //check for book availability
+        if (borrow.book.available <= 0) {
+            return res.status(400).json({
+                success: false,
+                message: " no copies available"
+            })
+        }
+
+        //update the borrow status
+        borrow.status = "Approved";
+        const BORROW_PERIOD_DAYS = 14
+        borrow.dueDate = new Date(Date.now() + BORROW_PERIOD_DAYS * 24 * 60 * 60 * 1000)
+
+        await borrow.save();
+
+        //decrease available copies only
+        await Book.findByIdAndUpdate(borrow.book._id, {
+            $inc: { available: -1 }
+        })
+
+        res.status(200).json({
+            success: true,
+            message: "Borrow request approved",
+            borrow
+        });
+
+    } catch (error) {
+        res.status(500).json({
+            success: false,
+            message: error.message
+        });
+    }
+}
+
+export const rejectBorrowRequest = async (req, res) => {
+    try {
+        const { borrowId } = req.params;
+
+        const borrowRecord = await Borrow.findById(borrowId);
+
+        if (!borrowRecord) {
+            return res.status(404).json({
+                success: false,
+                message: "Borrow request not found"
+            });
+        }
+
+        if (borrowRecord.status !== "Pending") {
+            return res.status(400).json({
+                success: false,
+                message: "Request already processed"
+            });
+        }
+
+        borrowRecord.status = "Rejected";
+        await borrowRecord.save();
+
+        res.status(200).json({
+            success: true,
+            message: "Borrow request rejected",
+            borrowRecord
+        });
+
+    } catch (error) {
+        res.status(500).json({
+            success: false,
+            message: error.message
+        });
+    }
+}
+
+export const renewBorrow = async (req, res) => {
+    try {
+        const borrowId = req.params.id;
+        const borrow = await Borrow.findById(borrowId);
+
+        if (!borrow) {
+            return res.status(404).json({
+                success: false,
+                message: "Borrow record not found"
+            });
+        }
+
+        if (borrow.status !== "Approved") {
+            return res.status(400).json({
+                success: false,
+                message: "Only approved borrows can be renewed"
+            })
+        }
+
+        if (borrow.isReturned) {
+            return res.status(400).json({ success: false, message: "Cannot renew returned books" });
+        }
+
+        const RENEW_DAYS = 7;
+        borrow.dueDate = new Date(borrow.dueDate.getTime() + RENEW_DAYS * 24 * 60 * 60 * 1000);
+
+        borrow.renewCount = (borrow.renewCount || 0) + 1;
+
+        await borrow.save();
+
+        res.status(200).json({
+            success: true,
+            message: "Borrow renewed successfully",
+            borrow
+        });
+    } catch (error) {
+        res.status(500).json({
+            success: false,
+            message: error.message
+        })
+    }
+}

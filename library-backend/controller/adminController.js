@@ -37,4 +37,3 @@ export const getAdminStatistics = async (req, res) => {
         });
     }
 };
-

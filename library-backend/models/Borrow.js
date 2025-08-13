@@ -21,12 +21,20 @@ const borrowSchema = new mongoose.Schema({
     },
     status: {
         type: String,
-        enum: ["Borrowed", "Returned", "Overdue"],
-        default: "borrowed"
+        enum: ["Pending", "Approved", "Rejected", "Borrowed", "Returned", "Overdue"],
+        default: "Pending"
     },
     isReturned: {
         type: Boolean,
         default: false,
+    },
+    dueDate:{
+        type: Date,
+        required:false
+    },
+    renewCount : {
+        type : Number,
+        default : 0,
     }
 },
     { timestamps: true });

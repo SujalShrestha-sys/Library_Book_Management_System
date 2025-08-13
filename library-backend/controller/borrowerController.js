@@ -7,16 +7,18 @@ export const getBorrowerStats = async (req, res) => {
 
         const borrowedCount = await Borrow.countDocuments({
             user: userId,
+            status: { $in: ["Approved", "borrowed"] },
             returnDate: null,
         })
 
         const returnedCount = await Borrow.countDocuments({
             user: userId,
-            returnDate: { $ne: null },
+            status: "Returned"
         })
 
         const dueSoonCount = await Borrow.countDocuments({
             user: userId,
+            status: { $in: ["Approved", "Borrowed"] },
             returnDate: null,
             dueDate: { $lte: new Date(Date.now() + 3 * 24 * 60 * 60 * 1000) } //3 days from now
         })
