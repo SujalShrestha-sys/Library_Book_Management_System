@@ -1,6 +1,6 @@
 import Borrow from "../models/Borrow.js";
 
-export const getDueSoonBooks = async (req, res) => {
+/* export const getDueSoonBooks = async (req, res) => {
     try {
         const userId = req.user.role === "borrower" ? req.user.id : req.params.userId;
         console.log(userId);
@@ -33,4 +33,39 @@ export const getDueSoonBooks = async (req, res) => {
             error: error.message
         })
     }
-} 
+}  */
+
+    export const getDueSoonBooks = async (req, res) => {
+    try {
+        const userId = req.user.role === "borrower" ? req.user.id : req.params.userId;
+        
+        // Get today's date at midnight (start of day)
+        const todayStart = new Date();
+        todayStart.setHours(0, 0, 0, 0);
+        
+        // Get today's date at 23:59:59 (end of day)
+        const todayEnd = new Date();
+        todayEnd.setDate(todayEnd.getDate())
+
+        // Find borrow records due today
+        const dueTodayBooks = await Borrow.find({
+            user: userId,
+            status: "Approved",
+            isReturned: false,
+            dueDate: { $gte: todayStart, $lte: todayEnd }
+        }).populate("book");
+
+        res.status(200).json({
+            success: true,
+            count: dueTodayBooks.length,
+            dueTodayBooks
+        });
+
+    } catch (error) {
+        res.status(500).json({
+            success: false,
+            message: "Error fetching due today books",
+            error: error.message
+        });
+    }
+}

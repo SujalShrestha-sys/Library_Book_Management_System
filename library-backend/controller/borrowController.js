@@ -8,8 +8,8 @@ export const borrowBook = async (req, res) => {
     try {
         const { bookId } = req.params;
         const userId = req.user?.id;
-        console.log("Book ID from params:", bookId);
-        console.log("User ID from token:", userId);
+        /* console.log("Book ID from params:", bookId);
+        console.log("User ID from token:", userId); */
 
         const book = await Book.findById(bookId);
         console.log(book);
@@ -70,7 +70,7 @@ export const borrowBook = async (req, res) => {
 }
 
 //Return a book
-export const returnBook = async (req, res) => {
+export const  returnBook = async (req, res) => {
     const { borrowId } = req.params;
 
     try {
@@ -170,7 +170,10 @@ export const getAllBorrowRecords = async (req, res) => {
 
 export const getBorrowerDetails = async (req, res) => {
     try {
-        const history = await Borrow.find({ user: req.params.userId }).populate("book", "title author").populate("user", "name email").sort({ borrowDate: -1 });
+        const history = await Borrow
+            .find({ user: req.params.userId })
+            .populate("book", "title author").populate("user", "name email")
+            .sort({ borrowDate: -1 });
         console.log(history)
 
         const pending = history.filter((book) => book.status === "Pending")

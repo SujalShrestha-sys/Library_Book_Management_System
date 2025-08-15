@@ -3,7 +3,6 @@ import bcrypt from "bcrypt"
 import jwt from "jsonwebtoken"
 
 export const userLogin = async (req, res) => {
-
     try {
         const { email, password } = req.body;
 
@@ -95,7 +94,7 @@ export const registerUser = async (req, res) => {
         return res.status(201).json({
             success: true,
             message: "User registered successfully.",
-            data : savedNewUser
+            data: savedNewUser
         });
 
     } catch (error) {

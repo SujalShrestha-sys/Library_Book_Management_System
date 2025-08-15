@@ -25,3 +25,4 @@ export const sendEmail = async ({ to, subject, text, html }) => {
         console.log(error);
     }
 }
+

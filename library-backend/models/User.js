@@ -25,6 +25,13 @@ const userSchema = new mongoose.Schema({
         enum: ["borrower", "librarian"],
         default: "borrower",
     },
+    phoneNumber: {
+        type : String,
+        unique: true,
+        sparse: true,
+        match: [/^\d{10}$/, "Please enter a valid 10-digit phone number"]
+
+    }
 },
     { timestamps: true }
 

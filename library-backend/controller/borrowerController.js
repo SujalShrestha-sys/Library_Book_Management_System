@@ -1,5 +1,7 @@
 import Book from "../models/Book.js";
 import Borrow from "../models/Borrow.js";
+import User from "../models/User.js";
+import bcrypt from "bcrypt"
 
 export const getBorrowerStats = async (req, res) => {
     try {
@@ -51,5 +53,55 @@ export const getMyBooks = async (req, res) => {
         res.status(500).json({
             message: "error fetching my books"
         })
+    }
+}
+
+//update borrower profile
+export const updateBorrowerProfile = async (req, res) => {
+
+    try {
+
+        const userId = req.user.id;
+        const { name, phoneNumber, email, newPassword } = req.body;
+
+        const updateFields = {};
+
+        if (name) {
+            updateFields.name = name;
+        }
+
+        if (phoneNumber) {
+            updateFields.phoneNumber = phoneNumber;
+        }
+
+        if (email) {
+            updateFields.email = email;
+        }
+
+        if (newPassword) {
+            const salt = await bcrypt.genSalt(10); //genSalt(10) → Creates a unique cryptographic salt.
+            updateFields.password = await bcrypt.hash(newPassword, salt) //hash → Converts the plain password into a secure hash.
+        }
+
+        const updatedUser = await User.findByIdAndUpdate(
+            userId,
+            { $set: updateFields },
+            { new: true, runValidators: true }
+        ).select("-password")
+
+        console.log(updatedUser)
+
+
+        res.status(200).json({
+            success: true,
+            message: "Profile updated successfully",
+            user: updatedUser
+        })
+    } catch (error) {
+        res.status(500).json({
+            success: false,
+            message: "Error updating profile",
+            error: error.message
+        });
     }
 }

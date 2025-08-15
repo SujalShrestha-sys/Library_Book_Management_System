@@ -17,6 +17,7 @@ router.get("/borrowed", authenticateToken, authorizedRole("librarian"), getAllBo
 router.get("/details/:userId", authenticateToken, authorizedRole("librarian"), getBorrowerDetails)
 router.patch("/borrow/approve/:borrowId", authenticateToken, authorizedRole("librarian"), approveBorrowerRequest);
 router.patch("/borrow/reject/:borrowId", authenticateToken, authorizedRole("librarian"), rejectBorrowRequest);
+router.patch("/mark-returned/:borrowId", authenticateToken, authorizedRole("librarian"), returnBook)
 
 
 export default router
