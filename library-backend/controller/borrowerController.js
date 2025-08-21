@@ -32,6 +32,8 @@ export const getBorrowerStats = async (req, res) => {
             dueSoon: dueSoonCount
 
         })
+
+        res.send(borrowedCount)
     } catch (error) {
         res.status(500).json({
             success: false,
@@ -48,7 +50,13 @@ export const getMyBooks = async (req, res) => {
 
         const borrows = await Borrow.find({ user: userId }).populate("book", "title, author, isbn").sort({ borrowDate: -1 });
 
-        res.json(borrows)
+        res.status(200).json({
+            success: true,
+            message: "Book fetched successfully",
+            borrows,
+        }
+        )
+
     } catch (error) {
         res.status(500).json({
             message: "error fetching my books"

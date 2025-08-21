@@ -32,13 +32,28 @@ export const userLogin = async (req, res) => {
         }
 
         //jwt part
-        const token = jwt.sign({ id: user._id, role: user.role }, process.env.JWT_KEY, { expiresIn: "1h" });
+        const token = jwt.sign({ id: user._id, role: user.role, name: user.name, email: user.email }, process.env.JWT_KEY, { expiresIn: "1h" });
 
         res.cookie("token", token, {
             httpOnly: true,
             expires: new Date(Date.now() + 36000000),
             secure: process.env.NODE_ENV === "production"
         })
+
+        // Log response before sending it
+        const responseData = {
+            success: true,
+            message: "Login Successful",
+            token,
+            user: {
+                id: user._id,
+                name: user.name,
+                email: user.email,
+                role: user.role
+            }
+        };
+
+        console.log("Response:", responseData); // Moved log before return
 
         return res.status(200).json({
             success: true,
