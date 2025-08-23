@@ -2,6 +2,7 @@ import Book from "../models/Book.js";
 import Borrow from "../models/Borrow.js";
 import User from "../models/User.js";
 import { sendEmail } from "../utils/sendEmail.js";
+import bcrypt from "bcrypt";
 
 export const getAdminStatistics = async (req, res) => {
     try {
@@ -83,3 +84,78 @@ export const sendRemainderEmail = async (req, res) => {
 
     }
 }
+
+export const getLibrarianProfile = async (req, res) => {
+    try {
+        const userId = req.user.id;
+        console.log(userId)
+
+        const user = await User.findById(userId).select("-password").select("-role");
+        if (!user) {
+            return res.status(404).json({
+                success: false,
+                message: "User not found",
+            });
+        }
+        console.log("User: ", user)
+
+        res.status(200).json({
+            success: true,
+            user,
+        });
+    } catch (error) {
+        res.status(500).json({
+            success: false,
+            message: "Error fetching profile",
+            error: error.message,
+        });
+    }
+};
+
+
+
+
+export const updateLibrarianProfile = async (req, res) => {
+    try {
+        const userId = req.user.id;
+        const { name, email, oldPassword, newPassword } = req.body;
+
+        const user = await User.findById(userId);
+        if (!user) {
+            return res.status(404).json({ success: false, message: "User not found" });
+        }
+
+        // 🔹 Update name/email if provided
+        if (name) user.name = name;
+        if (email) user.email = email;
+
+        // 🔹 If user wants to change password, validate old password
+        if (newPassword) {
+            if (!oldPassword) {
+                return res.status(400).json({ success: false, message: "Old password required" });
+            }
+
+            const isMatch = await bcrypt.compare(oldPassword, user.password);
+            if (!isMatch) {
+                return res.status(400).json({ success: false, message: "Old password is incorrect" });
+            }
+
+            const salt = await bcrypt.genSalt(10);
+            user.password = await bcrypt.hash(newPassword, salt);
+        }
+
+        await user.save();
+
+        // Remove sensitive fields before returning
+        const updatedUser = user.toObject();
+        delete updatedUser.password;
+
+        res.json({ success: true, user: updatedUser });
+    } catch (error) {
+        res.status(500).json({
+            success: false,
+            message: "Error updating profile",
+            error: error.message,
+        });
+    }
+};

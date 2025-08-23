@@ -70,16 +70,12 @@ export const updateBorrowerProfile = async (req, res) => {
     try {
 
         const userId = req.user.id;
-        const { name, phoneNumber, email, newPassword } = req.body;
+        const { name, email, newPassword } = req.body;
 
         const updateFields = {};
 
         if (name) {
             updateFields.name = name;
-        }
-
-        if (phoneNumber) {
-            updateFields.phoneNumber = phoneNumber;
         }
 
         if (email) {
@@ -113,3 +109,30 @@ export const updateBorrowerProfile = async (req, res) => {
         });
     }
 }
+
+export const getBorrowerProfile = async (req, res) => {
+    try {
+        const userId = req.user.id;
+        console.log(userId)
+
+        const user = await User.findById(userId).select("-password").select("-role");
+        if (!user) {
+            return res.status(404).json({
+                success: false,
+                message: "User not found",
+            });
+        }
+        console.log("User: ", user)
+
+        res.status(200).json({
+            success: true,
+            user,
+        });
+    } catch (error) {
+        res.status(500).json({
+            success: false,
+            message: "Error fetching profile",
+            error: error.message,
+        });
+    }
+};
