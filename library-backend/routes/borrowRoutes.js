@@ -14,7 +14,7 @@ router.get("/due-soon", authenticateToken, authorizedRole("borrower"), getDueSoo
 
 //librarian actions
 router.get("/borrowed", authenticateToken, authorizedRole("librarian"), getAllBorrowRecords)
-router.get("/details/:userId", authenticateToken, authorizedRole("librarian"), getBorrowerDetails)
+router.get("/details", authenticateToken, authorizedRole("librarian"), getBorrowerDetails)
 router.patch("/borrow/approve/:borrowId", authenticateToken, authorizedRole("librarian"), approveBorrowerRequest);
 router.patch("/borrow/reject/:borrowId", authenticateToken, authorizedRole("librarian"), rejectBorrowRequest);
 router.patch("/mark-returned/:borrowId", authenticateToken, authorizedRole("librarian"), returnBook)

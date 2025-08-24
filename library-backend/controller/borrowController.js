@@ -70,7 +70,7 @@ export const borrowBook = async (req, res) => {
 }
 
 //Return a book
-export const  returnBook = async (req, res) => {
+export const returnBook = async (req, res) => {
     const { borrowId } = req.params;
 
     try {
@@ -171,20 +171,33 @@ export const getAllBorrowRecords = async (req, res) => {
 export const getBorrowerDetails = async (req, res) => {
     try {
         const history = await Borrow
-            .find({ user: req.params.userId })
+            .find()
             .populate("book", "title author").populate("user", "name email")
             .sort({ borrowDate: -1 });
         console.log(history)
 
-        const pending = history.filter((book) => book.status === "Pending")
+        const pending = history.filter((book) => book.status === "Pending");
+        const active = history.filter((book) => book.status === "Approved");
+        const returned = history.filter((book) => book.status === "Returned");
+        const overdue = history.filter((book) => {
+            book.status === "Approved" && book.dueDate && new Date(book.dueDate) < new Date();
+        });
         console.log(pending)
+        console.log(active)
+        console.log(returned)
+        console.log(overdue)
 
         res.status(200).json({
             success: true,
-            history,
+            stats: {
+                totalMembers: new Set(history.map((h) => h.user?._id.toString())).size,
+                activeBorrowers: active.length,
+                pendingRequests: pending.length,
+                overdueBooks: overdue.length,
+            },
             pending,
+            history
         })
-
     } catch (error) {
         res.status(500).json({
             success: false,
