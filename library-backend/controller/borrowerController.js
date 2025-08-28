@@ -32,8 +32,6 @@ export const getBorrowerStats = async (req, res) => {
             dueSoon: dueSoonCount
 
         })
-
-        res.send(borrowedCount)
     } catch (error) {
         res.status(500).json({
             success: false,
@@ -48,7 +46,7 @@ export const getMyBooks = async (req, res) => {
     try {
         const userId = req.user.id;
 
-        const borrows = await Borrow.find({ user: userId }).populate("book", "title, author, isbn").sort({ borrowDate: -1 });
+        const borrows = await Borrow.find({ user: userId }).populate("book", "title author isbn").sort({ borrowDate: -1 });
 
         res.status(200).json({
             success: true,

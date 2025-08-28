@@ -8,8 +8,6 @@ export const borrowBook = async (req, res) => {
     try {
         const { bookId } = req.params;
         const userId = req.user?.id;
-        /* console.log("Book ID from params:", bookId);
-        console.log("User ID from token:", userId); */
 
         const book = await Book.findById(bookId);
         console.log(book);
@@ -153,7 +151,10 @@ export const getMyBorrowHistory = async (req, res) => {
 // Librarian views all borrow records
 export const getAllBorrowRecords = async (req, res) => {
     try {
-        const records = await Borrow.find().populate("book").populate("user");
+        const records = await Borrow.find({
+            isReturned: false,
+            status: "Approved",
+        }).populate("book").populate("user");
         res.status(200).json({
             success: true,
             records

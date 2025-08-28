@@ -1,6 +1,6 @@
 import express from "express";
 import { authenticateToken, authorizedRole } from "../middleware/authMiddleware.js";
-import { createBook, deleteBook, getAllBooks, updateBooks, getRecommendedBooks,getNewRelease } from "../controller/bookController.js";
+import { createBook, deleteBook, getAllBooks, updateBooks, getRecommendedBooks, getNewRelease } from "../controller/bookController.js";
 
 const router = express.Router();
 
@@ -9,7 +9,7 @@ router.post("/", authenticateToken, authorizedRole("librarian"), createBook);
 router.put("/:id", authenticateToken, authorizedRole("librarian"), updateBooks);
 router.delete("/:id", authenticateToken, authorizedRole("librarian"), deleteBook);
 
-router.get("/new", authenticateToken, authorizedRole("borrower"), getNewRelease);
+router.get("/new", authenticateToken, authorizedRole("borrower", "librarian"), getNewRelease);
 router.get("/recommended", authenticateToken, authorizedRole("borrower"), getRecommendedBooks);
 
 // Public for both borrowers and librarians
