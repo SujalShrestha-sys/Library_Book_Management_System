@@ -173,7 +173,7 @@ export const getBorrowerDetails = async (req, res) => {
     try {
         const history = await Borrow
             .find()
-            .populate("book", "title author").populate("user", "name email")
+            .populate("book", "title author available").populate("user", "name email")
             .sort({ borrowDate: -1 });
         console.log(history)
 
