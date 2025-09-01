@@ -2,7 +2,7 @@ import Book from "../models/Book.js";
 
 export const createBook = async (req, res) => {
     try {
-        const { title, author, isbn, quantity, available, genre, publisher, publishedYear, description, coverImage } = req.body;
+        const { title, author, isbn, quantity, available, genre, publisher, publishedYear, description } = req.body;
 
         if (!title || !author || !isbn || !quantity) {
             return res.status(400).json({ success: false, message: "All fields are required" });
@@ -17,6 +17,7 @@ export const createBook = async (req, res) => {
             })
         }
 
+        const coverImage = req.file ? `/uploads/${req.file.filename}` : "";
         const newBookCreation = new Book({
             title,
             author,
@@ -26,8 +27,8 @@ export const createBook = async (req, res) => {
             publishedYear,
             genre,
             publisher,
-            coverImage,
-            description
+            description,
+            coverImage
         });
 
         const savedBook = await newBookCreation.save();
@@ -72,15 +73,31 @@ export const getAllBooks = async (req, res) => {
 export const updateBooks = async (req, res) => {
     try {
         const { id } = req.params;
-        const { title, author, isbn, quantity, available, genre, publisher, publishedYear, description, coverImage } = req.body;
+        const { title, author, isbn, quantity, available, genre, publisher, publishedYear, description } = req.body;
 
+        // Handle cover image upload
+        let coverImage;
+        if (req.file) {
+            coverImage = `/uploads/${req.file.filename}`;
+        }
+
+        const availableCopies = available ?? quantity;
         const updatedBooks = await Book.findByIdAndUpdate(
             id,
-            { title, author, isbn, quantity, available, genre, publishedYear, publisher, description, coverImage },
             {
-                new: true
-            }
-        )
+                title,
+                author,
+                isbn,
+                quantity,
+                available: availableCopies,
+                genre,
+                publishedYear,
+                publisher,
+                description,
+                ...(coverImage && { coverImage }), // only update if new image uploaded
+            },
+            { new: true }
+        );
 
         if (!updatedBooks) {
             return res.status(404).json({
@@ -162,3 +179,4 @@ export const getRecommendedBooks = async (req, res) => {
         })
     }
 }
+

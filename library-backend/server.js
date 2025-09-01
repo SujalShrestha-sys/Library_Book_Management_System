@@ -8,6 +8,7 @@ import cookieParser from "cookie-parser";
 import borrowRoutes from "./routes/borrowRoutes.js"
 import adminRoutes from "../library-backend/routes/adminRoutes.js"
 import borrowerRoutes from "./routes/borrowerRoutes.js"
+import path from "path"
 
 dotenv.config();
 connectDatabase();
@@ -22,6 +23,8 @@ app.use(cors({
 app.use(express.json());
 app.use(cookieParser());
 
+app.use("/uploads", express.static("uploads"));
+
 //Routes
 app.use("/api/auth", authRoutes)
 app.use("/api/books", bookRoutes)
@@ -29,12 +32,13 @@ app.use("/api", borrowRoutes)
 app.use("/api/admin", adminRoutes)
 app.use("/api/borrower", borrowerRoutes)
 
+
 app.use("/", (req, res) => {
   res.send("Welcome to LBMS- done and deployed by @Sujal Shrestha")
 });
 
 
-const PORT = process.env.PORT
+const PORT = process.env.PORT || 5000
 
 app.listen(PORT, () => {
   console.log(`Server started at: http://localhost:${PORT}`)
