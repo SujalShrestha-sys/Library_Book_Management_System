@@ -16,7 +16,7 @@ connectDatabase();
 const app = express();
 
 const allowedOrigins = [
-  "https://lbms-frontend.vercel.app",
+  "https://library-book-management-system.vercel.app",
   "http://localhost:5173"
 ]
 
