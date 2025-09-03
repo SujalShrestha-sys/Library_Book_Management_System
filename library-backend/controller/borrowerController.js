@@ -62,51 +62,67 @@ export const getMyBooks = async (req, res) => {
     }
 }
 
-//update borrower profile
+// update borrower profile
 export const updateBorrowerProfile = async (req, res) => {
-
     try {
-
         const userId = req.user.id;
-        const { name, email, newPassword } = req.body;
+        const { name, email, oldPassword, newPassword } = req.body;
+
+        const user = await User.findById(userId);
+
+        if (!user) {
+            return res.status(404).json({
+                success: false,
+                message: "User not found",
+            });
+        }
 
         const updateFields = {};
 
-        if (name) {
-            updateFields.name = name;
-        }
+        // update basic info without password requirement
+        if (name) updateFields.name = name;
+        if (email) updateFields.email = email;
 
-        if (email) {
-            updateFields.email = email;
-        }
-
+        // if password change is requested
         if (newPassword) {
-            const salt = await bcrypt.genSalt(10); //genSalt(10) → Creates a unique cryptographic salt.
-            updateFields.password = await bcrypt.hash(newPassword, salt) //hash → Converts the plain password into a secure hash.
+            if (!oldPassword) {
+                return res.status(400).json({
+                    success: false,
+                    message: "Old password is required to change password",
+                });
+            }
+
+            const isMatch = await bcrypt.compare(oldPassword, user.password);
+            if (!isMatch) {
+                return res.status(400).json({
+                    success: false,
+                    message: "Incorrect old password",
+                });
+            }
+
+            const salt = await bcrypt.genSalt(10);
+            updateFields.password = await bcrypt.hash(newPassword, salt);
         }
 
         const updatedUser = await User.findByIdAndUpdate(
             userId,
             { $set: updateFields },
             { new: true, runValidators: true }
-        ).select("-password")
-
-        console.log(updatedUser)
-
+        ).select("-password");
 
         res.status(200).json({
             success: true,
             message: "Profile updated successfully",
-            user: updatedUser
-        })
+            user: updatedUser,
+        });
     } catch (error) {
         res.status(500).json({
             success: false,
             message: "Error updating profile",
-            error: error.message
+            error: error.message,
         });
     }
-}
+};
 
 export const getBorrowerProfile = async (req, res) => {
     try {
