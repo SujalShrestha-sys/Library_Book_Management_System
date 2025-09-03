@@ -125,11 +125,10 @@ export const updateLibrarianProfile = async (req, res) => {
             return res.status(404).json({ success: false, message: "User not found" });
         }
 
-        // 🔹 Update name/email if provided
         if (name) user.name = name;
         if (email) user.email = email;
 
-        // 🔹 If user wants to change password, validate old password
+        //If user wants to change password, validate old password
         if (newPassword) {
             if (!oldPassword) {
                 return res.status(400).json({ success: false, message: "Old password required" });
@@ -146,7 +145,6 @@ export const updateLibrarianProfile = async (req, res) => {
 
         await user.save();
 
-        // Remove sensitive fields before returning
         const updatedUser = user.toObject();
         delete updatedUser.password;
 

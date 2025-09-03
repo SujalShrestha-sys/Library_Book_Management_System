@@ -183,10 +183,6 @@ export const getBorrowerDetails = async (req, res) => {
         const overdue = history.filter((book) => {
             book.status === "Approved" && book.dueDate && new Date(book.dueDate) < new Date();
         });
-        console.log(pending)
-        console.log(active)
-        console.log(returned)
-        console.log(overdue)
 
         res.status(200).json({
             success: true,

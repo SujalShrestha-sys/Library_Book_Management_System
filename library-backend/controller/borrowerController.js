@@ -61,8 +61,6 @@ export const getMyBooks = async (req, res) => {
         })
     }
 }
-
-// update borrower profile
 export const updateBorrowerProfile = async (req, res) => {
     try {
         const userId = req.user.id;
@@ -77,13 +75,10 @@ export const updateBorrowerProfile = async (req, res) => {
             });
         }
 
-        const updateFields = {};
+        if (name) user.name = name;
+        if (email) user.email = email;
 
-        // update basic info without password requirement
-        if (name) updateFields.name = name;
-        if (email) updateFields.email = email;
-
-        // if password change is requested
+        // Handle password update only if requested
         if (newPassword) {
             if (!oldPassword) {
                 return res.status(400).json({
@@ -101,14 +96,13 @@ export const updateBorrowerProfile = async (req, res) => {
             }
 
             const salt = await bcrypt.genSalt(10);
-            updateFields.password = await bcrypt.hash(newPassword, salt);
+            user.password = await bcrypt.hash(newPassword, salt);
         }
 
-        const updatedUser = await User.findByIdAndUpdate(
-            userId,
-            { $set: updateFields },
-            { new: true, runValidators: true }
-        ).select("-password");
+        await user.save();
+
+        const updatedUser = user.toObject();
+        delete updatedUser.password;
 
         res.status(200).json({
             success: true,
@@ -123,6 +117,7 @@ export const updateBorrowerProfile = async (req, res) => {
         });
     }
 };
+
 
 export const getBorrowerProfile = async (req, res) => {
     try {
