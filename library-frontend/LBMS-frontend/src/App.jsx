@@ -1,23 +1,26 @@
-import { BrowserRouter, Routes, Route } from "react-router-dom";
-import "./App.css";
-import Login from "./pages/login";
-import Dashboard from "./pages/Dashboard";
-import Register from "./pages/Register";
+import React from "react";
+import AppRoutes from "./routes/AppRoutes.jsx";
+import { AuthProvider } from "./context/AuthContext.jsx";
+import { ToastContainer } from "react-toastify";
 
 function App() {
   return (
-    <BrowserRouter>
-      <Routes>
-        {/* Login page */}
-        <Route path="/" element={<Login />} />
-        
-         {/* Register page */}
-        <Route path="/register" element={<Register />}></Route>
+    <AuthProvider>
+      <AppRoutes />
 
-        {/* Dashboard (handles both borrower and librarian) */}
-        <Route path="/dashboard" element={<Dashboard />} />
-      </Routes>
-    </BrowserRouter>
+      <ToastContainer
+        position="top-right"
+        autoClose={3000}
+        hideProgressBar={false}
+        newestOnTop
+        closeOnClick
+        rtl={false}
+        pauseOnFocusLoss
+        draggable
+        pauseOnHover
+        theme="colored"
+      />
+    </AuthProvider>
   );
 }
 

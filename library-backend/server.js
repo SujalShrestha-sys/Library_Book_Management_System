@@ -8,7 +8,7 @@ import cookieParser from "cookie-parser";
 import borrowRoutes from "./routes/borrowRoutes.js"
 import adminRoutes from "../library-backend/routes/adminRoutes.js"
 import borrowerRoutes from "./routes/borrowerRoutes.js"
-import path from "path"
+import contactRoutes from "./routes/contactRoutes.js"
 
 dotenv.config();
 connectDatabase();
@@ -36,6 +36,7 @@ app.use("/api/books", bookRoutes)
 app.use("/api", borrowRoutes)
 app.use("/api/admin", adminRoutes)
 app.use("/api/borrower", borrowerRoutes)
+app.use("/api/contact", contactRoutes)
 
 
 app.use("/", (req, res) => {
