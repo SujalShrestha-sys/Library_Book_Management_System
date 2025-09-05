@@ -9,7 +9,7 @@ router.post("/create", authenticateToken, authorizedRole("borrower"), createMess
 router.get("/stats", authenticateToken, authorizedRole("borrower"), getMyStats);
 
 // Librarian routes
-router.get("/getMessage", authenticateToken, authorizedRole("librarian"), getMessages)
+router.get("/getMessage", authenticateToken, authorizedRole("librarian", "borrower"), getMessages)
 router.get("/:id", authenticateToken, authorizedRole("librarian"), getMessageById);
 router.put("/reply/:id", authenticateToken, authorizedRole("librarian"), replyToMessage)
 router.put("/resolve/:id", authenticateToken, authorizedRole("librarian"), resolveMessage);

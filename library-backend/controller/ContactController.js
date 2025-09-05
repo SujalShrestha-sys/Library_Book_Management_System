@@ -1,4 +1,3 @@
-// controllers/contactController.js
 import ContactMessage from "../models/ContactMessage.js";
 
 export const createMessage = async (req, res) => {
