@@ -44,10 +44,12 @@ export const getMessageById = async (req, res) => {
             return res.status(404).json({
                 success: false,
                 message: "Message not found",
-                data: message
             })
         };
-        res.json(message);
+        res.status(200).json({
+            success: true,
+            data: message,
+        });
     } catch (error) {
         res.status(500).json({
             success: false,
