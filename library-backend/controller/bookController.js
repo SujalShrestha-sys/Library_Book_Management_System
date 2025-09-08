@@ -1,4 +1,5 @@
 import Book from "../models/Book.js";
+import { v2 as cloudinary } from "cloudinary";
 
 export const createBook = async (req, res) => {
     try {
@@ -17,7 +18,9 @@ export const createBook = async (req, res) => {
             })
         }
 
-        const coverImage = req.file ? `/uploads/${req.file.filename}` : "";
+        const coverImage = req.file ? req.file.path : "";
+        console.log(coverImage)
+
         const newBookCreation = new Book({
             title,
             author,
@@ -73,53 +76,84 @@ export const getAllBooks = async (req, res) => {
 export const updateBooks = async (req, res) => {
     try {
         const { id } = req.params;
-        const { title, author, isbn, quantity, available, genre, publisher, publishedYear, description } = req.body;
+        const {
+            title,
+            author,
+            isbn,
+            quantity,
+            available,
+            genre,
+            publisher,
+            publishedYear,
+            description,
+        } = req.body;
 
-        // Handle cover image upload
-        let coverImage;
-        if (req.file) {
-            coverImage = `/uploads/${req.file.filename}`;
-        }
+        // Convert quantity and available to numbers safely
+        const quantityNum = quantity ? Number(quantity) : 0;
+        const availableCopies = available ? Number(available) : quantityNum;
 
-        const availableCopies = available ?? quantity;
-        const updatedBooks = await Book.findByIdAndUpdate(
-            id,
-            {
-                title,
-                author,
-                isbn,
-                quantity,
-                available: availableCopies,
-                genre,
-                publishedYear,
-                publisher,
-                description,
-                ...(coverImage && { coverImage }), // only update if new image uploaded
-            },
-            { new: true }
-        );
-
-        if (!updatedBooks) {
+        const existingBook = await Book.findById(id);
+        if (!existingBook) {
             return res.status(404).json({
                 success: false,
-                message: "Book not found"
+                message: "Book not found",
             });
         }
 
-        return res.json({
-            success: true,
-            message: "Books updated successfully",
-            updatedBooks: updatedBooks
-        })
+        // Handle cover image upload
+        let coverImage = existingBook.coverImage;
+        if (req.file) {
+            // Delete old image from Cloudinary if it exists
+            if (existingBook.coverImage) {
+                try {
+                    const publicId = existingBook.coverImage
+                        .split("/")
+                        .slice(-2)
+                        .join("/") // get folder/name
+                        .split(".")[0]; // remove extension
 
+                    await cloudinary.uploader.destroy(publicId);
+                    console.log("Old cover image deleted:", publicId);
+                } catch (err) {
+                    console.error("Failed to delete old cover image:", err);
+                }
+            }
+
+            // Assign new uploaded Cloudinary image
+            coverImage = req.file.path;
+        }
+
+        const updateData = {
+            title,
+            author,
+            isbn,
+            quantity: quantityNum,
+            available: availableCopies,
+            genre,
+            publishedYear,
+            publisher,
+            description,
+            coverImage,
+        };
+
+        const updatedBook = await Book.findByIdAndUpdate(id, updateData, {
+            new: true,
+        });
+
+        return res.status(200).json({
+            success: true,
+            message: "Book updated successfully",
+            updatedBook,
+        });
     } catch (error) {
-        console.log(error.message)
-        res.status(500).json({
+        console.error("Failed to update book:", error);
+        return res.status(500).json({
             success: false,
-            message: "Failed to update book"
+            message: "Failed to update book",
         });
     }
-}
+};
+
 
 export const deleteBook = async (req, res) => {
     try {
@@ -129,8 +163,22 @@ export const deleteBook = async (req, res) => {
         if (!deleted) {
             return res.status(404).json({
                 success: false,
-                message: "Book not found"
+                message: "Book not found",
             });
+        }
+
+        // If book had a cover image, delete it from Cloudinary
+        if (deleted.coverImage) {
+            try {
+                const urlParts = deleted.coverImage.split("/");
+                const fileName = urlParts[urlParts.length - 1];
+                const publicId = `library-books/${fileName.split(".")[0]}`; // remove extension
+
+                await cloudinary.uploader.destroy(publicId);
+                console.log("Cover image deleted from Cloudinary:", publicId);
+            } catch (err) {
+                console.error("Failed to delete cover image from Cloudinary:", err);
+            }
         }
 
         return res.status(200).json({
@@ -138,15 +186,15 @@ export const deleteBook = async (req, res) => {
             message: "Book deleted successfully",
             deletedBook: deleted,
         });
-
     } catch (error) {
-        console.log("failed to delete books", error.message);
+        console.log("Failed to delete book:", error.message);
         res.status(500).json({
             success: false,
-            message: "Failed to delete book"
+            message: "Failed to delete book",
         });
     }
-}
+};
+
 
 export const getNewRelease = async (req, res) => {
     try {
