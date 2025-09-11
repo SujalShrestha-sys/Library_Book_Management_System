@@ -9,8 +9,8 @@ const router = express.Router();
 router.post("/", authenticateToken, authorizedRole("librarian"), upload.single("coverImage"), createBook);
 router.put("/:id", authenticateToken, authorizedRole("librarian"), upload.single("coverImage"), updateBooks);
 router.delete("/:id", authenticateToken, authorizedRole("librarian"), deleteBook);
-
 router.get("/new", authenticateToken, authorizedRole("borrower", "librarian"), getNewRelease);
+
 router.get("/recommended", authenticateToken, authorizedRole("borrower"), getRecommendedBooks);
 
 // Public for both borrowers and librarians

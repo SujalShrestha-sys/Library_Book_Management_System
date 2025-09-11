@@ -3,54 +3,65 @@ import { v2 as cloudinary } from "cloudinary";
 
 export const createBook = async (req, res) => {
     try {
-        const { title, author, isbn, quantity, available, genre, publisher, publishedYear, description } = req.body;
-
-        if (!title || !author || !isbn || !quantity) {
-            return res.status(400).json({ success: false, message: "All fields are required" });
-        }
-
-        const existingBook = await Book.findOne({ isbn })
-
-        if (existingBook) {
-            return res.status(409).json({
-                success: false,
-                message: "ISBN already exists in the database"
-            })
-        }
-
-        const coverImage = req.file ? req.file.path : "";
-        console.log(coverImage)
-
-        const newBookCreation = new Book({
+        const {
             title,
             author,
             isbn,
             quantity,
             available,
-            publishedYear,
             genre,
             publisher,
+            publishedYear,
             description,
-            coverImage
-        });
+        } = req.body;
 
-        const savedBook = await newBookCreation.save();
+        // check required fields
+        if (!title || !author || !isbn || !quantity) {
+            return res.status(400).json({
+                success: false,
+                message: "Title, Author, ISBN, and Quantity are required",
+            });
+        }
+
+        // check if ISBN already exists
+        const existingBook = await Book.findOne({ isbn });
+        if (existingBook) {
+            return res.status(409).json({
+                success: false,
+                message: "ISBN already exists in the database",
+            });
+        }
+
+        // handle image (if uploaded)
+        const coverImage = req.file ? req.file.path : "";
+
+        const newBook = new Book();
+        newBook.title = title;
+        newBook.author = author;
+        newBook.isbn = isbn;
+        newBook.quantity = quantity;
+        newBook.available = available ? available : quantity; // if not given, available = quantity
+        newBook.genre = genre;
+        newBook.publisher = publisher;
+        newBook.publishedYear = publishedYear;
+        newBook.description = description;
+        newBook.coverImage = coverImage;
+
+        const savedBook = await newBook.save();
 
         res.status(200).json({
             success: true,
             message: "Book created successfully",
             book: savedBook,
-        })
-
+        });
     } catch (error) {
-        console.log(error);
+        console.error("Create error:", error);
         res.status(500).json({
             success: false,
-            message: "Failed to create book"
-        })
+            message: "Failed to create book",
+        });
     }
-
-}
+};
 
 export const getAllBooks = async (req, res) => {
     try {
@@ -75,126 +86,65 @@ export const getAllBooks = async (req, res) => {
 
 export const updateBooks = async (req, res) => {
     try {
+        console.log("===== Update Book Request =====");
+        console.log("Book ID:", req.params.id);
+        console.log("Request body:", req.body);
+        console.log("Uploaded file:", req.file)
         const { id } = req.params;
-        const {
-            title,
-            author,
-            isbn,
-            quantity,
-            available,
-            genre,
-            publisher,
-            publishedYear,
-            description,
-        } = req.body;
 
-        // Convert quantity and available to numbers safely
-        const quantityNum = quantity ? Number(quantity) : 0;
-        const availableCopies = available ? Number(available) : quantityNum;
-
+        // find existing book
         const existingBook = await Book.findById(id);
         if (!existingBook) {
-            return res.status(404).json({
-                success: false,
-                message: "Book not found",
-            });
+            return res.status(404).json({ success: false, message: "Book not found" });
         }
 
-        // Handle cover image upload
-        let coverImage = existingBook.coverImage;
-        if (req.file) {
-            // Delete old image from Cloudinary if it exists
-            if (existingBook.coverImage) {
-                try {
-                    const publicId = existingBook.coverImage
-                        .split("/")
-                        .slice(-2)
-                        .join("/") // get folder/name
-                        .split(".")[0]; // remove extension
+        // if new image uploaded, use it, else keep old
+        const coverImage = req.file ? req.file.path : existingBook.coverImage;
 
-                    await cloudinary.uploader.destroy(publicId);
-                    console.log("Old cover image deleted:", publicId);
-                } catch (err) {
-                    console.error("Failed to delete old cover image:", err);
-                }
-            }
+        // update fields one by one
+        existingBook.title = req.body.title || existingBook.title;
+        existingBook.author = req.body.author || existingBook.author;
+        existingBook.isbn = req.body.isbn || existingBook.isbn;
+        existingBook.quantity = req.body.quantity || existingBook.quantity;
+        existingBook.available = req.body.available || existingBook.available;
+        existingBook.genre = req.body.genre || existingBook.genre;
+        existingBook.publisher = req.body.publisher || existingBook.publisher;
+        existingBook.publishedYear = req.body.publishedYear || existingBook.publishedYear;
+        existingBook.description = req.body.description || existingBook.description;
+        existingBook.coverImage = coverImage;
 
-            // Assign new uploaded Cloudinary image
-            coverImage = req.file.path;
-        }
+        const updatedBook = await existingBook.save();
 
-        const updateData = {
-            title,
-            author,
-            isbn,
-            quantity: quantityNum,
-            available: availableCopies,
-            genre,
-            publishedYear,
-            publisher,
-            description,
-            coverImage,
-        };
-
-        const updatedBook = await Book.findByIdAndUpdate(id, updateData, {
-            new: true,
-        });
-
-        return res.status(200).json({
+        res.status(200).json({
             success: true,
             message: "Book updated successfully",
             updatedBook,
         });
     } catch (error) {
-        console.error("Failed to update book:", error);
-        return res.status(500).json({
-            success: false,
-            message: "Failed to update book",
-        });
+        console.error("Update error:", error);
+        res.status(500).json({ success: false, message: "Failed to update book" });
     }
 };
-
 
 export const deleteBook = async (req, res) => {
     try {
         const { id } = req.params;
-        const deleted = await Book.findByIdAndDelete(id);
 
-        if (!deleted) {
-            return res.status(404).json({
-                success: false,
-                message: "Book not found",
-            });
+        const deletedBook = await Book.findByIdAndDelete(id);
+
+        if (!deletedBook) {
+            return res.status(404).json({ success: false, message: "Book not found" });
         }
 
-        // If book had a cover image, delete it from Cloudinary
-        if (deleted.coverImage) {
-            try {
-                const urlParts = deleted.coverImage.split("/");
-                const fileName = urlParts[urlParts.length - 1];
-                const publicId = `library-books/${fileName.split(".")[0]}`; // remove extension
-
-                await cloudinary.uploader.destroy(publicId);
-                console.log("Cover image deleted from Cloudinary:", publicId);
-            } catch (err) {
-                console.error("Failed to delete cover image from Cloudinary:", err);
-            }
-        }
-
-        return res.status(200).json({
+        res.status(200).json({
             success: true,
             message: "Book deleted successfully",
-            deletedBook: deleted,
         });
     } catch (error) {
-        console.log("Failed to delete book:", error.message);
-        res.status(500).json({
-            success: false,
-            message: "Failed to delete book",
-        });
+        console.error("Delete error:", error);
+        res.status(500).json({ success: false, message: "Failed to delete book" });
     }
 };
-
 
 export const getNewRelease = async (req, res) => {
     try {
@@ -214,7 +164,7 @@ export const getNewRelease = async (req, res) => {
 
 export const getRecommendedBooks = async (req, res) => {
     try {
-        const books = await Book.aggregate([{ $sample: { size: 5 } }]);
+        const books = await Book.aggregate([{ $sample: { size: 6 } }]);
 
         res.status(200).json({
             success: true,
