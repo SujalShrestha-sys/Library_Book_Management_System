@@ -1,5 +1,4 @@
 import Book from "../models/Book.js";
-import { v2 as cloudinary } from "cloudinary";
 
 export const createBook = async (req, res) => {
     try {
